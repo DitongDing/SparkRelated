@@ -10,16 +10,19 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
 public class SSHReader extends Reader {
+	private static String prvKey = "/root/.ssh/id_rsa";
+
 	private Session session;
 	private OutputStream out;
 	private BufferedReader in;
 
 	private byte[] sig = { 0 };
 
-	public SSHReader(String base, String host, String user, String password,
-			Integer port) throws Exception {
+	public SSHReader(String base, String host, String user, String password, Integer port) throws Exception {
 		super(base);
 		JSch jsch = new JSch();
+		if (password == null)
+			jsch.addIdentity(prvKey);
 		session = jsch.getSession(user, host, port);
 		session.setPassword(password);
 		session.setConfig("StrictHostKeyChecking", "no");
@@ -48,7 +51,7 @@ public class SSHReader extends Reader {
 		out.write(sig);
 		out.flush();
 		String line = in.readLine();
-		if(line.charAt(0) == 0)
+		if (line.charAt(0) == 0)
 			return null;
 		return line;
 	}
@@ -58,7 +61,7 @@ public class SSHReader extends Reader {
 		out.close();
 		in.close();
 	}
-	
+
 	@Override
 	public void finalize() throws Exception {
 		session.disconnect();
