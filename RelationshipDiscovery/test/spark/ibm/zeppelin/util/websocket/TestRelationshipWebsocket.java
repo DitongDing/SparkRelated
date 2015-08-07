@@ -7,7 +7,7 @@ import org.java_websocket.server.WebSocketServer;
 
 public class TestRelationshipWebsocket {
 	public static void main(String[] args) throws IOException, InterruptedException {
-		WebSocketServer websocket = new ParagraphWebsocketServer();
+		WebSocketServer websocket = new WebsocketServer();
 		websocket.start();
 		System.out.println("websocket server start");
 		Scanner scanner = new Scanner(System.in);

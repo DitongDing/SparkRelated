@@ -16,10 +16,12 @@ import org.apache.zeppelin.scheduler.Scheduler;
 import org.apache.zeppelin.scheduler.SchedulerFactory;
 import org.apache.zeppelin.spark.SparkInterpreter;
 
-import spark.ibm.zeppelin.util.websocket.ParagraphWebsocketServer;
+import spark.ibm.zeppelin.util.ComUtils;
+import spark.ibm.zeppelin.util.websocket.WebsocketServer;
+import spark.ibm.zeppelin.util.websocket.output.Message;
 
 public class RelationshipInterpreter extends Interpreter {
-	private static ParagraphWebsocketServer websocket = new ParagraphWebsocketServer();
+	private static WebsocketServer websocket = new WebsocketServer();
 
 	static {
 		Interpreter.register("relationship", "spark", RelationshipInterpreter.class.getName());
@@ -42,45 +44,35 @@ public class RelationshipInterpreter extends Interpreter {
 	public InterpreterResult interpret(String st, InterpreterContext interpreterContext) {
 		InterpreterResult result = null;
 
+		String noteID = interpreterContext.getNoteId();
 		String paragraphID = interpreterContext.getParagraphId();
-		int count = 0;
-		while (!websocket.checkConnection(paragraphID) && count++ < 5) {
-			System.out.println("No Connection");
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+
+//		@SuppressWarnings("unused")
+//		SparkContext sparkc = getSparkInterpreter().getSparkContext();
+//		SQLContext sqlc = getSparkInterpreter().getSQLContext();
+//		DataFrame[] dfs = new DataFrame[6];
+//		String[] names = sqlc.tableNames();
+		String html = "";
+//		for (int i = 0; i < names.length && i < 6; i++) {
+//			dfs[i] = sqlc.table(names[i]);
+//			html += "<p>" + names[i] + " " + dfs[i].schema() + "   </p>                     ";
+//		}
+
+		websocket.broadcast(ComUtils.toJson(new Message(noteID, paragraphID, "push 0")));
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		websocket.broadcast(ComUtils.toJson(new Message(noteID, paragraphID, "push 1")));
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 
-		if (websocket.checkConnection(paragraphID)) {
-			@SuppressWarnings("unused")
-			SparkContext sparkc = getSparkInterpreter().getSparkContext();
-			SQLContext sqlc = getSparkInterpreter().getSQLContext();
-			DataFrame[] dfs = new DataFrame[6];
-			String[] names = sqlc.tableNames();
-			String html = "";
-			for (int i = 0; i < names.length && i < 6; i++) {
-				dfs[i] = sqlc.table(names[i]);
-				html += "<p>" + names[i] + " " + dfs[i].schema() + "   </p>                     ";
-			}
+		result = new InterpreterResult(Code.SUCCESS, "%html " + html);
 
-			websocket.sendMessage(paragraphID, "push 0");
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			websocket.sendMessage(paragraphID, "push 1");
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-
-			result = new InterpreterResult(Code.SUCCESS, "%html " + html);
-		} else
-			result = new InterpreterResult(Code.ERROR, "%html <h3>Websocket setup failed</h3>");
 		return result;
 	}
 
