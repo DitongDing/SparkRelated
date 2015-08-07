@@ -1,10 +1,9 @@
 package spark.ibm.zeppelin.interpreter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.spark.SparkContext;
-import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.SQLContext;
 import org.apache.zeppelin.interpreter.Interpreter;
 import org.apache.zeppelin.interpreter.InterpreterContext;
@@ -17,8 +16,11 @@ import org.apache.zeppelin.scheduler.SchedulerFactory;
 import org.apache.zeppelin.spark.SparkInterpreter;
 
 import spark.ibm.zeppelin.util.ComUtils;
+import spark.ibm.zeppelin.util.RelationshipDiscovery;
+import spark.ibm.zeppelin.util.bean.table.Table;
 import spark.ibm.zeppelin.util.websocket.WebsocketServer;
-import spark.ibm.zeppelin.util.websocket.output.Message;
+import spark.ibm.zeppelin.util.websocket.output.TableOutput;
+import spark.ibm.zeppelin.util.websocket.output.WebsocketOutput;
 
 public class RelationshipInterpreter extends Interpreter {
 	private static WebsocketServer websocket = new WebsocketServer();
@@ -46,32 +48,25 @@ public class RelationshipInterpreter extends Interpreter {
 
 		String noteID = interpreterContext.getNoteId();
 		String paragraphID = interpreterContext.getParagraphId();
+		List<Table> tables = new ArrayList<Table>();
+		int count = 0;
+		int MAX = 6;
 
-//		@SuppressWarnings("unused")
-//		SparkContext sparkc = getSparkInterpreter().getSparkContext();
-//		SQLContext sqlc = getSparkInterpreter().getSQLContext();
-//		DataFrame[] dfs = new DataFrame[6];
-//		String[] names = sqlc.tableNames();
-		String html = "";
-//		for (int i = 0; i < names.length && i < 6; i++) {
-//			dfs[i] = sqlc.table(names[i]);
-//			html += "<p>" + names[i] + " " + dfs[i].schema() + "   </p>                     ";
-//		}
+		// Show table
+		websocket.broadcast(ComUtils.toJson(new WebsocketOutput(noteID, paragraphID, "CLEAN")));
+		SQLContext sqlc = getSparkInterpreter().getSQLContext();
+		String[] names = sqlc.tableNames();
+		for (String name : names)
+			if (count++ < MAX)
+				tables.add(new Table(name, sqlc.table(name)));
+			else
+				break;
+		websocket.broadcast(ComUtils.toJson(new TableOutput(noteID, paragraphID, tables)));
 
-		websocket.broadcast(ComUtils.toJson(new Message(noteID, paragraphID, "push 0")));
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		websocket.broadcast(ComUtils.toJson(new Message(noteID, paragraphID, "push 1")));
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		// Send relationship. Start searching.
+		RelationshipDiscovery.discorery(st, interpreterContext, websocket);
 
-		result = new InterpreterResult(Code.SUCCESS, "%html " + html);
+		result = new InterpreterResult(Code.SUCCESS);
 
 		return result;
 	}

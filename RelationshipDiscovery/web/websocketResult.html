@@ -1,2 +1,22 @@
-<div>{{content}}</div>
-<div>{{$rootScope.ddt_content}}</div>
+<div ng-show="show" style="clear: both; overflow: auto;">
+	<div ng-show="getType() == 'MESSAGE'">{{content}}</div>
+	<div ng-show="getType() == 'RELATIONSHIP' && tables.length != 0">
+		<div ng-repeat="r in relationTurples">{{r.tableName1 + "." +
+			r.columnName1 + " is related with " + r.tableName2 + "." +
+			r.columnName2}}</div>
+		<div ng-repeat="table in tables" class="col-xs-2">
+			<table class="table table-bordered table-striped">
+				<thead>
+					<tr>
+						<th>{{table.tableName}}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="column in table.tableColumns">
+						<td>{{column.columnName}}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
