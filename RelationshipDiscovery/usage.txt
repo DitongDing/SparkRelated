@@ -11,7 +11,7 @@
 
 to paragraph.html after {{paragraph.id}}_error
       
-3. Add 
+// 3. Add 
 
 $rootScope.ddt_websocket = null;
 $rootScope.ddt_map = {};

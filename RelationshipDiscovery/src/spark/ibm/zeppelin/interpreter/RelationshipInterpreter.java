@@ -27,6 +27,7 @@ public class RelationshipInterpreter extends Interpreter {
 
 	static {
 		Interpreter.register("relationship", "spark", RelationshipInterpreter.class.getName());
+		// Start ddt_websocket service
 		websocket.start();
 	}
 

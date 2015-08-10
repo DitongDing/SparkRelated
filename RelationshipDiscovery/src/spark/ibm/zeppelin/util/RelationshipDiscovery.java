@@ -13,16 +13,23 @@ public class RelationshipDiscovery {
 
 		// TODO do real search.
 		try {
-			for (int i = 0; i < 2; i++) {
-				Thread.sleep(1000);
-				String tableName1 = "rel_" + i + "_table_" + 1;
-				String columnName1 = "rel_" + i + "_column_" + 1;
-				String tableName2 = "rel_" + i + "_table_" + 2;
-				String columnName2 = "rel_" + i + "_column_" + 2;
-				RelationshipOutput output = new RelationshipOutput(noteID, paragraphID, new RelationTurple(tableName1, columnName1, tableName2,
-						columnName2));
-				websocket.broadcast(ComUtils.toJson(output));
-			}
+			Thread.sleep(1000);
+			String tableName1 = "csv";
+			String columnName1 = "cc_call_center_sk";
+			String tableName2 = "textfile";
+			String columnName2 = "_1";
+			RelationshipOutput output = new RelationshipOutput(noteID, paragraphID, new RelationTurple(tableName1, columnName1, tableName2,
+					columnName2, 0.8));
+			websocket.broadcast(ComUtils.toJson(output));
+
+			Thread.sleep(1000);
+			tableName1 = "csv";
+			columnName1 = "cc_hours";
+			tableName2 = "textfile";
+			columnName2 = "_1";
+			output = new RelationshipOutput(noteID, paragraphID, new RelationTurple(tableName1, columnName1, tableName2, columnName2, 0.8));
+			websocket.broadcast(ComUtils.toJson(output));
+
 			Thread.sleep(5000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
